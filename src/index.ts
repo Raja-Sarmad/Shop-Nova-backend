@@ -3,9 +3,7 @@ import { env } from "./config/env.js";
 
 const app = createApp();
 
-const isVercel = Boolean(process.env.VERCEL);
-
-if (!isVercel) {
+if (!process.env.VERCEL) {
   app.listen(env.port, () => {
     console.log(`API listening on http://localhost:${env.port}`);
   });
