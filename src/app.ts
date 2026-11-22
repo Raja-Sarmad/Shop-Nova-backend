@@ -39,15 +39,6 @@ export function createApp() {
   app.use(express.json({ limit: "2mb" }));
   app.use(express.urlencoded({ extended: true }));
 
-  app.use(async (_req, _res, next) => {
-    try {
-      await connectDb();
-      next();
-    } catch (error) {
-      next(error);
-    }
-  });
-
   app.get("/", (_req, res) => {
     res.json({
       success: true,
@@ -64,6 +55,15 @@ export function createApp() {
         env.cloudinary.cloudName && env.cloudinary.apiKey && env.cloudinary.apiSecret,
       ),
     });
+  });
+
+  app.use(async (_req, _res, next) => {
+    try {
+      await connectDb();
+      next();
+    } catch (error) {
+      next(error);
+    }
   });
 
   app.use("/api/auth", authRoutes);
