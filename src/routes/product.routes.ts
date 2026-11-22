@@ -31,7 +31,51 @@ const productBody = z.object({
   isPublished: z.union([z.boolean(), z.string()]).optional(),
   slug: z.string().optional(),
   existingImages: z.string().optional(),
+  primaryImageIndex: z.coerce.number().int().min(0).optional(),
+  imagePlan: z.string().optional(),
 });
+
+function withPrimaryFirst<T>(images: T[], primaryIndex?: number) {
+  if (!images.length || primaryIndex === undefined || Number.isNaN(primaryIndex)) {
+    return images;
+  }
+  const index = Math.min(Math.max(primaryIndex, 0), images.length - 1);
+  if (index === 0) return images;
+  const next = [...images];
+  const [picked] = next.splice(index, 1);
+  next.unshift(picked);
+  return next;
+}
+
+function buildImagesFromPlan(
+  planRaw: string | undefined,
+  keepImages: { url: string; publicId: string }[],
+  uploaded: { url: string; publicId: string }[],
+  primaryImageIndex?: number,
+) {
+  if (planRaw) {
+    try {
+      const plan = JSON.parse(planRaw) as Array<
+        | { type: "existing"; url: string; publicId?: string }
+        | { type: "new"; index: number }
+      >;
+      if (Array.isArray(plan) && plan.length) {
+        const built: { url: string; publicId: string }[] = [];
+        for (const step of plan) {
+          if (step.type === "existing") {
+            built.push({ url: step.url, publicId: step.publicId ?? "" });
+          } else if (step.type === "new" && uploaded[step.index]) {
+            built.push(uploaded[step.index]);
+          }
+        }
+        if (built.length) return withPrimaryFirst(built, primaryImageIndex);
+      }
+    } catch {
+      /* fall through */
+    }
+  }
+  return withPrimaryFirst([...keepImages, ...uploaded], primaryImageIndex);
+}
 
 function parseList(value: unknown): string[] {
   if (Array.isArray(value)) return value.map(String).map((s) => s.trim()).filter(Boolean);
@@ -182,8 +226,15 @@ router.post(
           ? undefined
           : Number(body.compareAtPrice),
       category: body.category,
-      collectionSlug: body.collectionSlug || "signature-scents",
-      images: uploaded,
+      collectionSlug:
+        body.collectionSlug ||
+        (body.category === "shoes" ? "everyday-footwear" : "signature-scents"),
+      images: buildImagesFromPlan(
+        body.imagePlan,
+        [],
+        uploaded,
+        body.primaryImageIndex,
+      ),
       colors: parseColors(body.colors),
       sizes: parseList(body.sizes),
       tags: parseList(body.tags),
@@ -264,7 +315,12 @@ router.put(
       uploaded.push({ url: result.url, publicId: result.publicId });
     }
 
-    product.images = [...keepImages, ...uploaded] as never;
+    product.images = buildImagesFromPlan(
+      body.imagePlan,
+      keepImages,
+      uploaded,
+      body.primaryImageIndex,
+    ) as never;
     await product.save();
     res.json({ success: true, product: mapProduct(product) });
   }),
