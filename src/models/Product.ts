@@ -30,6 +30,12 @@ const productSchema = new Schema(
       required: true,
       index: true,
     },
+    gender: {
+      type: String,
+      enum: ["men", "women", "unisex"],
+      default: "unisex",
+      index: true,
+    },
     collectionSlug: { type: String, default: "signature-scents", index: true },
     images: { type: [imageSchema], default: [] },
     colors: { type: [colorSchema], default: [] },

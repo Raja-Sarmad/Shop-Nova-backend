@@ -11,6 +11,7 @@ export function mapProduct(doc: ProductDoc | Record<string, unknown>) {
     price: p.price,
     compareAtPrice: p.compareAtPrice,
     category: p.category,
+    gender: (p as { gender?: string }).gender || "unisex",
     collection: p.collectionSlug,
     images: (p.images ?? []).map((img) =>
       typeof img === "string" ? img : img.url,

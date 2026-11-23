@@ -18,6 +18,7 @@ const productBody = z.object({
   price: z.coerce.number().positive(),
   compareAtPrice: z.coerce.number().positive().optional().or(z.literal("")),
   category: z.enum(["shoes", "fragrance"]),
+  gender: z.enum(["men", "women", "unisex"]).optional(),
   collectionSlug: z.string().optional(),
   colors: z.union([z.string(), z.array(z.any())]).optional(),
   sizes: z.union([z.string(), z.array(z.string())]).optional(),
@@ -119,8 +120,10 @@ router.get(
     const {
       q,
       category,
+      gender,
       collection,
       sort = "featured",
+      filter: catalogFilter,
       minPrice,
       maxPrice,
       published = "true",
@@ -132,7 +135,17 @@ router.get(
       filter.isPublished = true;
     }
     if (category && category !== "all") filter.category = category;
+    if (gender === "men" || gender === "women") {
+      filter.gender = { $in: [gender, "unisex"] };
+    } else if (gender === "unisex") {
+      filter.gender = "unisex";
+    }
     if (collection) filter.collectionSlug = collection;
+    if (catalogFilter === "new") filter.isNew = true;
+    if (catalogFilter === "bestseller") filter.isBestseller = true;
+    if (catalogFilter === "sale") {
+      filter.compareAtPrice = { $exists: true, $gt: 0 };
+    }
     if (q) {
       filter.$or = [
         { name: { $regex: String(q), $options: "i" } },
@@ -226,6 +239,7 @@ router.post(
           ? undefined
           : Number(body.compareAtPrice),
       category: body.category,
+      gender: body.gender ?? "unisex",
       collectionSlug:
         body.collectionSlug ||
         (body.category === "shoes" ? "everyday-footwear" : "signature-scents"),
@@ -274,6 +288,7 @@ router.put(
         body.compareAtPrice === "" ? undefined : Number(body.compareAtPrice);
     }
     if (body.category) product.category = body.category;
+    if (body.gender) product.gender = body.gender;
     if (body.collectionSlug) product.collectionSlug = body.collectionSlug;
     if (body.colors !== undefined) product.colors = parseColors(body.colors) as never;
     if (body.sizes !== undefined) product.sizes = parseList(body.sizes);

@@ -90,6 +90,7 @@ async function seed() {
         tags: ["perfume"],
         stockQuantity: 30,
         inStock: true,
+        gender: "unisex",
         isNew: true,
         isBestseller: true,
         fabric: "Eau de Parfum",
@@ -105,6 +106,7 @@ async function seed() {
         description: "Bergamot, orange blossom, and clean cedar.",
         price: 7600,
         category: "fragrance",
+        gender: "women",
         collectionSlug: "signature-scents",
         images: [{ url: u("photo-1615634260167-c8cdede054de"), publicId: "" }],
         colors: [{ name: "Citrus", hex: "#E8C96A" }],
@@ -126,6 +128,7 @@ async function seed() {
         description: "A quiet low court sneaker for daily wear.",
         price: 11900,
         category: "shoes",
+        gender: "men",
         collectionSlug: "everyday-steps",
         images: [{ url: u("photo-1549298916-b41d501d3772"), publicId: "" }],
         colors: [
@@ -150,6 +153,7 @@ async function seed() {
         description: "Slim penny loafer with stacked leather heel.",
         price: 17900,
         category: "shoes",
+        gender: "men",
         collectionSlug: "everyday-steps",
         images: [{ url: u("photo-1614252235816-8c852fd85888"), publicId: "" }],
         colors: [
@@ -174,6 +178,7 @@ async function seed() {
         description: "Pull-on ankle boot with a soft almond toe.",
         price: 19900,
         category: "shoes",
+        gender: "women",
         collectionSlug: "after-hours",
         images: [{ url: u("photo-1543163521-1bf539c55dd2"), publicId: "" }],
         colors: [
